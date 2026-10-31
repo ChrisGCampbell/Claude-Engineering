@@ -43,7 +43,76 @@ SEVERITIES = ["low", "medium", "high"]
 #     Commits the model to a severity bucket.
 #
 # Later tools (request_clarification, route_to_adjuster, escalate_to_human) extend this list.
-TOOL_SCHEMAS: list[dict[str, Any]] = []
+TOOL_SCHEMAS: list[dict[str, Any]] = [
+  {
+        "name": "lookup_policy",
+        "description": "Look up an insurance policy using its policy ID. Use this early in the claim investigation.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "policy_id": {
+                    "type": "string"
+                }
+            },
+            "required": ["policy_id"]
+        }
+   },
+   {
+        "name": "record_claim_fact",
+        "description": "Records one normalized fact (incident_date, location, items_lost, ...).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "required": ["field", "value"]
+        }
+   },
+   {
+        "name": "classify_claim",
+        "description": "Classify the insurance claim based on collected facts. Use when enough evidence is available to select a claim type and confidence score.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "claim_type": {
+                    "type": "string",
+                    "enum": CLAIM_TYPES
+                    },
+                "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                    },
+                "rationale": {
+                    "type": "string"
+                    }
+            },
+            "required": ["claim_type", "confidence", "rationale"]
+        }
+    },
+    {
+        "name": "assess_severity",
+        "description": "Assess the severity of an insurance claim based on the collected facts. Use when enough information is available to determine whether the claim is low, medium, or high severity, and provide a rationale.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "severity": {
+                        "type": "string",
+                        "enum": SEVERITIES
+                        },
+                "rationale": {
+                        "type": "string"
+                        }
+                },
+            "required": ["severity", "rationale"]
+        }
+    }
+ ]
 
 # ----------------------------------------------------------------------------
 # Errors — Graceful Tool Failure shape
