@@ -127,13 +127,18 @@ def _err(category: str, retryable: bool, message: str) -> str:
     #   message: message
     # The shape is what tool_result content carries when the model needs to read an error
     # and adapt rather than crash the loop.
-    return '{"is_error": true, "message": "TODO: _err not implemented"}'
+    return json.dumps({
+            "is_error": True, 
+            "message": message,
+            "error_category": category,
+            "is_retryable": retryable
+    })
 
 
 def _ok(payload: dict[str, Any]) -> str:
     # TODO: Return json.dumps(payload). Tool results are always strings;
     # the model parses them on the next turn.
-    return "{}"
+    return json.dumps(payload)
 
 
 # ----------------------------------------------------------------------------
