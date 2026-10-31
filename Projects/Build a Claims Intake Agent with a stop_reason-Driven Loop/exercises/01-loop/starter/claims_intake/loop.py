@@ -168,10 +168,13 @@ def run(
                         "content": result
                     })
 
-                working_message.append({
+            working_messages.append({
                     "role": "user",
                     "content": tool_results
-                })
+            })
 
-        raise NotImplementedError("Exercise 1: implement the stop_reason triage")
+        else:
+            raise UnexpectedStopReason(
+                f"Turn {turn}: unexpected stop_reason {response.stop_reason}"
+            )
 
