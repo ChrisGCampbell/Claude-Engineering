@@ -150,29 +150,95 @@ def _t_lookup_policy(session: ClaimSession, inp: dict[str, Any]) -> str:
     # TODO: Read inp["policy_id"]; if not a string, return a permanent error.
     # Look it up in session.policies; if missing, return a permanent error naming the id.
     # Otherwise return the policy dict via _ok(...).
-    return _err("permanent", False, "TODO: _t_lookup_policy not implemented yet")
+    policy_id = inp.get("policy_id")
 
+    if not isinstance(policy_id ,str):
+        return _err("permanent", False, "Policy ID must be a string")
+
+    policy = session.policies.get(policy_id)
+
+    if policy is None:
+            return _err("permanent", False, f"Policy {policy_id} not found")
+
+    return _ok(policy)
 
 def _t_record_claim_fact(session: ClaimSession, inp: dict[str, Any]) -> str:
     # TODO: Validate inp["field"] and inp["value"] are both strings; store
     # session.case_facts[field] = value; return _ok with {"recorded": True, "field": field,
     # "case_facts_count": len(session.case_facts)}.
-    return _err("permanent", False, "TODO: _t_record_claim_fact not implemented yet")
+    field = inp.get("field")
+    value = inp.get("value")
+
+    if not isinstance(field, str):
+        return _err("permanent", False, "Field must be a string")
+
+    if not isinstance(value, str):
+        return _err("permanent", False, "Value must be a string")
+
+    session.case_facts[field] = value
+
+    return _ok({
+        "recorded": True,
+        "field": field,
+        "case_facts_count": len(session.case_facts)
+    })
 
 
 def _t_classify_claim(session: ClaimSession, inp: dict[str, Any]) -> str:
     # TODO: Validate claim_type (in CLAIM_TYPES), confidence (number in [0,1]),
     # rationale (string). Store session.classification = {claim_type, confidence, rationale}
     # and return _ok with the recorded values plus {"recorded": True}.
-    return _err("permanent", False, "TODO: _t_classify_claim not implemented yet")
+    claim_type = inp.get("claim_type")
+    confidence = inp.get("confidence")
+    rationale = inp.get("rationale")
+
+    if claim_type not in CLAIM_TYPES:
+        return _err("permanent", False, "Invalid claim type")
+
+    if (
+        not isinstance(confidence, (int, float))
+        or isinstance(confidence, bool)
+        or not 0 <= confidence <= 1
+    ):
+        return _err("permanent", False, "Confidence must be a number between 0 and 1")
+
+    if not isinstance(rationale, str):
+        return _err("permanent", False, "Rationale must be a string")
+
+    session.classification = {
+        "claim_type": claim_type,
+        "confidence": confidence,
+        "rationale": rationale
+    }
+
+    return _ok({
+        "recorded": True,
+        **session.classification
+    })
 
 
 def _t_assess_severity(session: ClaimSession, inp: dict[str, Any]) -> str:
     # TODO: Validate severity (in SEVERITIES) and rationale (string).
     # Store session.severity = {severity, rationale} and return _ok with the recorded
     # values plus {"recorded": True}.
-    return _err("permanent", False, "TODO: _t_assess_severity not implemented yet")
+    severity = inp.get("severity")
+    rationale = inp.get("rationale")
 
+    if severity not in SEVERITIES:
+        return _err("permanent", False, "Invalid severity")
+
+    if not isinstance(rationale, str):
+        return _err("permanent", False, "Rationale must be a string")
+
+    session.severity = {
+        "severity": severity,
+        "rationale": rationale
+    }
+
+    return _ok({
+        "recorded": True,
+        **session.severity
+    })
 
 def _t_request_clarification(session: ClaimSession, inp: dict[str, Any]) -> str:
     # TODO: Implement the clarification dispatcher.
